@@ -59,7 +59,6 @@
         <!-- Header -->
         <header class="mb-8 text-center p-6 bg-red-700 rounded-3xl shadow-xl border-4 border-yellow-500">
             <h1 class="text-4xl font-bold text-yellow-400 drop-shadow-md">Китайский с Сашей</h1>
-            
         </header>
 
         <!-- Theme Selection -->
@@ -81,7 +80,7 @@
                         🚀 Начать тренировку (карточки)
                     </button>
                     <button onclick="startQuiz()" class="w-full bg-green-600 text-white p-4 rounded-xl font-bold shadow-lg hover:bg-green-700 transition transform hover:scale-105">
-                        📝 Пройти тест (30 вопросов)
+                        📝 Пройти тест (10 вопросов)
                     </button>
                 </div>
             </div>
@@ -128,7 +127,7 @@
         <div id="quiz-mode" class="hidden">
             <button onclick="showThemes()" class="mb-4 text-red-700 font-bold">← Назад к темам</button>
             <h2 id="quiz-theme-title" class="text-2xl font-bold mb-4 text-red-800">Тест</h2>
-            <div class="mb-4 text-right text-gray-500 font-bold" id="quiz-progress-text">1 / 30</div>
+            <div class="mb-4 text-right text-gray-500 font-bold" id="quiz-progress-text">1 / 10</div>
 
             <div id="quiz-question-container" class="bg-white p-8 rounded-3xl shadow-xl border-4 border-green-600 text-center">
                 <p class="text-gray-500 mb-4">Переведите слово:</p>
@@ -142,7 +141,7 @@
         <!-- Quiz Result -->
         <div id="quiz-result" class="hidden text-center p-8 bg-white rounded-3xl shadow-xl border-4 border-yellow-500">
             <h2 class="text-4xl font-bold mb-4 text-red-800">Результат теста</h2>
-            <p id="quiz-score-text" class="text-3xl mb-8">Правильно: 0 / 30</p>
+            <p id="quiz-score-text" class="text-3xl mb-8">Правильно: 0 / 10</p>
             <button onclick="showThemes()" class="w-full bg-red-700 text-white p-4 rounded-xl font-bold">Вернуться к темам</button>
         </div>
     </div>
@@ -153,6 +152,11 @@
         let trainingTheme = "";
         let currentWordIndex = 0;
         let filteredTrainingWords = [];
+
+        // Глобальные переменные для теста
+        let quizWords = [];
+        let currentQuizIndex = 0;
+        let score = 0;
 
         async function loadData() {
             try {
@@ -188,7 +192,6 @@
             container.innerHTML = '';
 
             allData[theme].forEach(word => {
-                // Фильтруем "заголовки" (у которых нет пиньиня или перевода)
                 if (!word.pinyin || !word.russian) return;
 
                 const div = document.createElement('div');
@@ -208,7 +211,6 @@
 
         function startTraining() {
             trainingTheme = currentTheme;
-            // Фильтруем только реальные слова для тренировки
             filteredTrainingWords = allData[trainingTheme].filter(word => word.pinyin && word.russian);
             
             if (filteredTrainingWords.length === 0) {
@@ -239,7 +241,6 @@
             
             document.getElementById('progress-text').innerText = `Карточка ${currentWordIndex + 1} из ${filteredTrainingWords.length}`;
             
-            // Сброс анимации переворота при переходе к новому слову
             document.getElementById('card-container').classList.remove('is-flipped');
         }
 
@@ -252,7 +253,7 @@
             if (word && word.chinese) {
                 const utterance = new SpeechSynthesisUtterance(word.chinese);
                 utterance.lang = 'zh-CN';
-                window.speechSynthesis.cancel(); // Остановить предыдущее озвучивание
+                window.speechSynthesis.cancel();
                 window.speechSynthesis.speak(utterance);
             }
         }
@@ -269,6 +270,78 @@
                 currentWordIndex--;
                 updateFlashcard();
             }
+        }
+
+        // --- Логика Теста (Quiz) ---
+
+        function startQuiz() {
+            const wordsInTheme = allData[currentTheme].filter(word => word.pinyin && word.russian);
+            
+            if (wordsInTheme.length < 10) {
+                alert("В этой теме меньше 10 слов. Пожалуйста, выберите другую тему.");
+                return;
+            }
+
+            // Выбираем 10 случайных слов
+            quizWords = [...wordsInTheme].sort(() => 0.5 - Math.random()).slice(0, 10);
+            currentQuizIndex = 0;
+            score = 0;
+
+            document.getElementById('word-view').classList.add('hidden');
+            document.getElementById('quiz-mode').classList.remove('hidden');
+            document.getElementById('quiz-theme-title').innerText = "Тест: " + currentTheme;
+            
+            showQuizQuestion();
+        }
+
+        function showQuizQuestion() {
+            const word = quizWords[currentQuizIndex];
+            document.getElementById('quiz_zh').innerText = word.chinese;
+            document.getElementById('quiz-progress-text').innerText = `Вопрос ${currentQuizIndex + 1} из 10`;
+            
+            const optionsContainer = document.getElementById('quiz-options');
+            optionsContainer.innerHTML = '';
+
+            // Генерируем варианты ответов
+            let options = [word.russian];
+            const wordsInTheme = allData[currentTheme].filter(w => w.pinyin && w.russian);
+            
+            while (options.length < 4) {
+                let randomWord = wordsInTheme[Math.floor(Math.random() * wordsInTheme.length)].russian;
+                if (!options.includes(randomWord)) {
+                    options.push(randomWord);
+                }
+            }
+
+            // Перемешиваем варианты
+            options.sort(() => 0.5 - Math.random());
+
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = "bg-white border-2 border-gray-200 p-4 rounded-xl font-bold hover:border-green-500 hover:bg-green-50 transition";
+                btn.innerText = opt;
+                btn.onclick = () => checkAnswer(opt, word.russian);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(selected, correct) {
+            if (selected === correct) {
+                score++;
+            }
+
+            currentQuizIndex++;
+            if (currentQuizIndex < 10) {
+                showQuizQuestion();
+            } else {
+                showQuizResult();
+            }
+        }
+
+        function showQuizResult() {
+            document.getElementById('quiz-mode').classList.add('hidden');
+            document.getElementById('quiz-result').classList.remove('hidden');
+            document.getElementById('quiz-score-text').innerText = `Правильно: ${score} / 10`;
         }
 
         loadData();
