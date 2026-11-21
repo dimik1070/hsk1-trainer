@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HSK1 Trainer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #f3f4f6;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        .card {
+            transition: transform 0.2s;
+        }
+        .card:active {
+            transform: scale(0.98);
+        }
+        .hidden { display: none; }
+    </style>
+</head>
+<body class="p-4">
+    <div id="app" class="max-w-md mx-auto">
+        <!-- Header -->
+        <header class="mb-6 text-center">
+            <h1 class="text-3xl font-bold text-blue-600">HSK1 Trainer</h1>
+            <p class="text-gray-600">Учите китайский эффективно</p>
+        </header>
+
+        <!-- Theme Selection -->
+        <div id="theme-selection">
+            <h2 class="text-xl font-semibold mb-4">Выберите тему:</h2>
+            <div id="theme-list" class="grid grid-cols-1 gap-3">
+                <!-- Themes will be injected here -->
+            </div>
+        </div>
+
+        <!-- Word Study/Training -->
+        <div id="word-view" class="hidden">
+            <button onclick="showThemes()" class="mb-4 text-blue-600 font-medium">← Назад к темам</button>
+            <h2 id="current-theme-title" class="text-2xl font-bold mb-4">Тема</h2>
+
+            <div id="word-cards" class="space-y-4">
+                <!-- Words will be injected here -->
+            </div>
+        </div>
+
+        <!-- Training Mode (Flashcards) -->
+        <div id="training-mode" class="hidden">
+            <button onclick="showThemes()" class="mb-4 text-blue-600 font-medium">← Назад к темам</button>
+            <h2 id="training-theme-title" class="text-2xl font-bold mb-4">Тренировка</h2>
+            <div id="flashcard-container" class="mb-6">
+                <div id="flashcard" class="bg-white p-8 rounded-2xl shadow-lg text-center border-2 border-blue-500 cursor-pointer" onclick="flipCard()">
+                    <div id="card-front">
+                        <h3 id="card_zh" class="text-5xl font-bold mb-4">...</h3>
+                        <p id="card_py" class="text-xl text-gray-500"></p>
+                    </div>
+                    <div id="card-back" class="hidden">
+                        <h3 id="card_ru" class="text-2xl font-bold mb-2">...</h3>
+                        <p id="card_ex_ru" class="text-gray-600 italic"></p>
+                        <p id="card_ex_zh" class="text-gray-600 mt-2"></p>
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-center gap-4">
+                <button onclick="prevWord()" class="bg-gray-200 px-6 py-2 rounded-full">Назад</button>
+                <button onclick="nextWord()" class="bg-blue-600 text-white px-6 py-2 rounded-full">Вперед</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allData = {};
+        let currentTheme = "";
+        let currentWordIndex = 0;
+        let currentWordData = null;
+        let trainingTheme = "";
+
+        async function loadData() {
+            try {
+                const response = await fetch('data.json');
+                allData = await response.json();
+                renderThemes();
+            } catch (e) {
+                console.error("Error loading JSON", e);
+                document.getElementById('theme-list').innerHTML = "<p>Ошибка загрузки данных. Убедитесь, что data.json находится в той же папке.</p>";
+            }
+        }
+
+        function renderThemes() {
+            const list = document.getElementById('theme-list');
+            list.innerHTML = '';
+            Object.keys(allData).forEach(theme => {
+                const btn = document.createElement('button');
+                btn.className = "bg-white p-4 rounded-xl shadow border border-gray-200 text-left hover:bg-blue-50 transition";
+                btn.innerText = theme;
+                btn.onclick = () => showWords(theme);
+                list.appendChild(btn);
+            });
+        }
+
+        function showWords(theme) {
+            currentTheme = theme;
+            document.getElementById('theme-selection').classList.add('hidden');
+            document.getElementById('word-view').classList.remove('hidden');
+            document.getElementById('current-theme-title').innerText = theme;
+
+            const container = document.getElementById('word-cards');
+            container.innerHTML = '';
+
+            const trainBtn = document.createElement('button');
+            trainBtn.className = "w-full bg-green-600 text-white p-4 rounded-xl mb-4 font-bold shadow hover:bg-green-700";
+            trainBtn.innerText = "🚀 Начать тренировку (карточки)";
+            trainBtn.onclick = () => {
+                document.getElementById('word-view').classList.add('hidden');
+                document.getElementById('training-mode').classList.remove('hidden');
+                trainingTheme = theme;
+                currentWordIndex = 0;
+                updateFlashcard();
+            };
+            container.appendChild(trainBtn);
+
+            allData[theme].forEach(word => {
+                const div = document.createElement('div');
+                div.className = "bg-white p-4 rounded-xl shadow border border-gray-200";
+                div.innerHTML = `
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-2xl font-bold">${word.chinese}</span>
+                        <span class="text-gray-500">${word.pinyin}</span>
+                    </div>
+                    <p class="text-blue-600 mb-2">${word.russian}</p>
+                    ${word.ex_zh ? `<p class="text-sm text-gray-700">Пример: ${word.ex_zh}</p>` : ''}
+                    ${word.ex_ru ? `<p class="text-sm text-gray-500">Перевод: ${word.ex_ru}</p>` : ''}
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function showThemes() {
+            document.getElementById('theme-selection').classList.remove('hidden');
+            document.getElementById('word-view').classList.add('hidden');
+            document.getElementById('training-mode').classList.add('hidden');
+        }
+
+        function updateFlashcard() {
+            const words = allData[trainingTheme];
+            currentWordData = words[currentWordIndex];
+            document.getElementById('card_front').classList.remove('hidden');
+            document.getElementById('card_back').classList.add('hidden');
+            document.getElementById('card_zh').innerText = currentWordData.chinese;
+            document.getElementById('card_py').innerText = currentWordData.pinyin;
+            document.getElementById('card_ru').innerText = currentWordData.russian;
+            document.getElementById('card_ex_ru').innerText = currentWordData.ex_ru || "";
+            document.getElementById('card_ex_zh').innerText = currentWordData.ex_zh ? `Пример: ${currentWordData.ex_zh}` : "";
+        }
+
+        function flipCard() {
+            const front = document.getElementById('card_front');
+            const back = document.getElementById('card_back');
+            if (front.classList.contains('hidden')) {
+                front.classList.remove('hidden');
+                back.classList.add('hidden');
+            } else {
+                front.classList.add('hidden');
+                back.classList.remove('hidden');
+            }
+        }
+
+        function nextWord() {
+            if (currentWordIndex < allData[trainingTheme].length - 1) {
+                currentWordIndex++;
+                updateFlashcard();
+            }
+        }
+
+        function prevWord() {
+            if (currentWordIndex > 0) {
+                currentWordIndex--;
+                updateFlashcard();
+            }
+        }
+
+        loadData();
+    </script>
+</body>
+</html>
