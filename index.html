@@ -52,9 +52,6 @@
             transform: rotateY(180deg);
             background-color: #fff1f2; /* Светло-розовый/красный фон */
         }
-        .gold-text {
-            color: #d4af37;
-        }
     </style>
 </head>
 <body class="p-4">
@@ -96,13 +93,16 @@
             
             <div class="mb-2 text-right text-gray-500 font-bold" id="progress-text">1 / 1</div>
 
-            <div class="flip-card w-full h-[400px] mb-8">
+            <div id="card-container" class="flip-card w-full h-[400px]">
                 <div id="flashcard-inner" class="flip-card-inner w-full h-full">
                     <div class="flip-card-front">
                         <span class="text-6xl mb-4">🐼</span>
                         <h3 id="card_zh" class="text-5xl font-bold mb-4 text-gray-800">...</h3>
                         <p id="card_py" class="text-xl text-gray-500"></p>
-                        <p class="mt-8 text-sm text-red-500 font-bold">Нажми, чтобы увидеть перевод</p>
+                        <button onclick="speak()" class="mt-4 bg-white border-2 border-red-600 p-2 rounded-full shadow-sm hover:bg-red-50">
+                            🔊 Озвучка
+                        </button>
+                        <p class="mt-8 text-sm text-red-500 font-bold">Нажми на карточку, чтобы увидеть перевод</p>
                     </div>
                     <div class="flip-card-back">
                         <h3 id="card_ru" class="text-3xl font-bold mb-4 text-gray-800">...</h3>
@@ -112,7 +112,7 @@
                 </div>
             </div>
 
-            <div class="flex justify-between items-center gap-2">
+            <div class="flex justify-between items-center gap-2 mt-4">
                 <button onclick="prevWord()" class="bg-gray-200 px-6 py-3 rounded-full font-bold hover:bg-gray-300">Назад</button>
                 <button onclick="flipCard()" class="bg-red-700 text-white px-8 py-3 rounded-full font-bold shadow-lg hover:bg-red-800">Перевернуть</button>
                 <button onclick="nextWord()" class="bg-gray-200 px-6 py-3 rounded-full font-bold hover:bg-gray-300">Вперед</button>
@@ -213,11 +213,21 @@
             document.getElementById('progress-text').innerText = `Карточка ${currentWordIndex + 1} из ${filteredTrainingWords.length}`;
             
             // Сброс анимации переворота при переходе к новому слову
-            document.getElementById('flashcard-inner').classList.remove('is-flipped');
+            document.getElementById('card-container').classList.remove('is-flipped');
         }
 
         function flipCard() {
-            document.getElementById('flashcard-inner').classList.toggle('is-flipped');
+            document.getElementById('card-container').classList.toggle('is-flipped');
+        }
+
+        function speak() {
+            const word = filteredTrainingWords[currentWordIndex];
+            if (word && word.chinese) {
+                const utterance = new SpeechSynthesisUtterance(word.chinese);
+                utterance.lang = 'zh-CN';
+                window.speechSynthesis.cancel(); // Остановить предыдущее озвучивание
+                window.speechSynthesis.speak(utterance);
+            }
         }
 
         function nextWord() {
