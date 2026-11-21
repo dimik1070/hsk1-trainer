@@ -17,6 +17,41 @@
             transform: scale(0.98);
         }
         .hidden { display: none; }
+        
+        /* Стили для анимации карточек */
+        .flip-card {
+            perspective: 1000px;
+        }
+        .flip-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        .is-flipped .flip-card-inner {
+            transform: rotateY(180deg);
+        }
+        .flip-card-front, .flip-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            border-radius: 1.5rem;
+            border: 2px solid #3b82f6;
+            background-color: white;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        .flip-card-back {
+            transform: rotateY(180deg);
+            background-color: #eff6ff; /* Светло-синий фон для оборота */
+        }
     </style>
 </head>
 <body class="p-4">
@@ -31,17 +66,23 @@
         <div id="theme-selection">
             <h2 class="text-xl font-semibold mb-4">Выберите тему:</h2>
             <div id="theme-list" class="grid grid-cols-1 gap-3">
-                <!-- Themes will be injected here -->
+                <!-- Темы будут вставлены сюда -->
             </div>
         </div>
 
-        <!-- Word Study/Training -->
+        <!-- Word Study -->
         <div id="word-view" class="hidden">
             <button onclick="showThemes()" class="mb-4 text-blue-600 font-medium">← Назад к темам</button>
             <h2 id="current-theme-title" class="text-2xl font-bold mb-4">Тема</h2>
+            
+            <div class="mb-6">
+                <button onclick="startTraining()" class="w-full bg-green-600 text-white p-4 rounded-xl font-bold shadow hover:bg-green-700 transition">
+                    🚀 Начать тренировку (карточки)
+                </button>
+            </div>
 
             <div id="word-cards" class="space-y-4">
-                <!-- Words will be injected here -->
+                <!-- Слова будут вставлены сюда -->
             </div>
         </div>
 
@@ -49,22 +90,28 @@
         <div id="training-mode" class="hidden">
             <button onclick="showThemes()" class="mb-4 text-blue-600 font-medium">← Назад к темам</button>
             <h2 id="training-theme-title" class="text-2xl font-bold mb-4">Тренировка</h2>
-            <div id="flashcard-container" class="mb-6">
-                <div id="flashcard" class="bg-white p-8 rounded-2xl shadow-lg text-center border-2 border-blue-500 cursor-pointer" onclick="flipCard()">
-                    <div id="card-front">
-                        <h3 id="card_zh" class="text-5xl font-bold mb-4">...</h3>
+            
+            <div class="mb-2 text-right text-gray-500 font-medium" id="progress-text">1 / 1</div>
+
+            <div class="flip-card w-full h-[400px]">
+                <div id="flashcard-inner" class="flip-card-inner w-full h-full">
+                    <div class="flip-card-front">
+                        <h3 id="card_zh" class="text-5xl font-bold mb-4 text-gray-800">...</h3>
                         <p id="card_py" class="text-xl text-gray-500"></p>
+                        <p class="mt-8 text-sm text-blue-400">Нажми, чтобы увидеть перевод</p>
                     </div>
-                    <div id="card-back" class="hidden">
-                        <h3 id="card_ru" class="text-2xl font-bold mb-2">...</h3>
-                        <p id="card_ex_ru" class="text-gray-600 italic"></p>
-                        <p id="card_ex_zh" class="text-gray-600 mt-2"></p>
+                    <div class="flip-card-back">
+                        <h3 id="card_ru" class="text-2xl font-bold mb-4 text-gray-800">...</h3>
+                        <p id="card_ex_ru" class="text-lg text-gray-600"></p>
+                        <p id="card_ex_zh" class="text-sm text-gray-400 mt-4"></p>
                     </div>
                 </div>
             </div>
-            <div class="flex justify-center gap-4">
-                <button onclick="prevWord()" class="bg-gray-200 px-6 py-2 rounded-full">Назад</button>
-                <button onclick="nextWord()" class="bg-blue-600 text-white px-6 py-2 rounded-full">Вперед</button>
+
+            <div class="flex justify-between items-center gap-2">
+                <button onclick="prevWord()" class="bg-gray-200 px-6 py-3 rounded-full font-bold hover:bg-gray-300">Назад</button>
+                <button onclick="flipCard()" class="bg-blue-600 text-white px-8 py-3 rounded-full font-bold hover:bg-blue-700 shadow-lg">Перевернуть</button>
+                <button onclick="nextWord()" class="bg-gray-200 px-6 py-3 rounded-full font-bold hover:bg-gray-300">Вперед</button>
             </div>
         </div>
     </div>
@@ -72,9 +119,9 @@
     <script>
         let allData = {};
         let currentTheme = "";
-        let currentWordIndex = 0;
-        let currentWordData = null;
         let trainingTheme = "";
+        let currentWordIndex = 0;
+        let filteredTrainingWords = [];
 
         async function loadData() {
             try {
@@ -103,24 +150,16 @@
             currentTheme = theme;
             document.getElementById('theme-selection').classList.add('hidden');
             document.getElementById('word-view').classList.remove('hidden');
+            document.getElementById('training-mode').classList.add('hidden');
             document.getElementById('current-theme-title').innerText = theme;
 
             const container = document.getElementById('word-cards');
             container.innerHTML = '';
 
-            const trainBtn = document.createElement('button');
-            trainBtn.className = "w-full bg-green-600 text-white p-4 rounded-xl mb-4 font-bold shadow hover:bg-green-700";
-            trainBtn.innerText = "🚀 Начать тренировку (карточки)";
-            trainBtn.onclick = () => {
-                document.getElementById('word-view').classList.add('hidden');
-                document.getElementById('training-mode').classList.remove('hidden');
-                trainingTheme = theme;
-                currentWordIndex = 0;
-                updateFlashcard();
-            };
-            container.appendChild(trainBtn);
-
             allData[theme].forEach(word => {
+                // Фильтруем "заголовки" (у которых нет пиньиня или перевода)
+                if (!word.pinyin || !word.russian) return;
+
                 const div = document.createElement('div');
                 div.className = "bg-white p-4 rounded-xl shadow border border-gray-200";
                 div.innerHTML = `
@@ -136,6 +175,23 @@
             });
         }
 
+        function startTraining() {
+            trainingTheme = currentTheme;
+            // Фильтруем только реальные слова для тренировки
+            filteredTrainingWords = allData[trainingTheme].filter(word => word.pinyin && word.russian);
+            
+            if (filteredTrainingWords.length === 0) {
+                alert("В этой теме нет слов для тренировки.");
+                return;
+            }
+
+            currentWordIndex = 0;
+            document.getElementById('word-view').classList.add('hidden');
+            document.getElementById('training-mode').classList.remove('hidden');
+            document.getElementById('training-theme-title').innerText = "Тренировка: " + trainingTheme;
+            updateFlashcard();
+        }
+
         function showThemes() {
             document.getElementById('theme-selection').classList.remove('hidden');
             document.getElementById('word-view').classList.add('hidden');
@@ -143,31 +199,25 @@
         }
 
         function updateFlashcard() {
-            const words = allData[trainingTheme];
-            currentWordData = words[currentWordIndex];
-            document.getElementById('card_front').classList.remove('hidden');
-            document.getElementById('card_back').classList.add('hidden');
-            document.getElementById('card_zh').innerText = currentWordData.chinese;
-            document.getElementById('card_py').innerText = currentWordData.pinyin;
-            document.getElementById('card_ru').innerText = currentWordData.russian;
-            document.getElementById('card_ex_ru').innerText = currentWordData.ex_ru || "";
-            document.getElementById('card_ex_zh').innerText = currentWordData.ex_zh ? `Пример: ${currentWordData.ex_zh}` : "";
+            const word = filteredTrainingWords[currentWordIndex];
+            document.getElementById('card_zh').innerText = word.chinese;
+            document.getElementById('card_py').innerText = word.pinyin;
+            document.getElementById('card_ru').innerText = word.russian;
+            document.getElementById('card_ex_ru').innerText = word.ex_ru || "";
+            document.getElementById('card_ex_zh').innerText = word.ex_zh ? `Пример: ${word.ex_zh}` : "";
+            
+            document.getElementById('progress-text').innerText = `Карточка ${currentWordIndex + 1} из ${filteredTrainingWords.length}`;
+            
+            // Сброс анимации переворота при переходе к новому слову
+            document.getElementById('flashcard-inner').classList.remove('is-flipped');
         }
 
         function flipCard() {
-            const front = document.getElementById('card_front');
-            const back = document.getElementById('card_back');
-            if (front.classList.contains('hidden')) {
-                front.classList.remove('hidden');
-                back.classList.add('hidden');
-            } else {
-                front.classList.add('hidden');
-                back.classList.remove('hidden');
-            }
+            document.getElementById('flashcard-inner').classList.toggle('is-flipped');
         }
 
         function nextWord() {
-            if (currentWordIndex < allData[trainingTheme].length - 1) {
+            if (currentWordIndex < filteredTrainingWords.length - 1) {
                 currentWordIndex++;
                 updateFlashcard();
             }
@@ -182,5 +232,5 @@
 
         loadData();
     </script>
-</body>
+</body
 </html>
