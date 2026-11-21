@@ -80,7 +80,7 @@
                         🚀 Начать тренировку (карточки)
                     </button>
                     <button onclick="startQuiz()" class="w-full bg-green-600 text-white p-4 rounded-xl font-bold shadow-lg hover:bg-green-700 transition transform hover:scale-105">
-                        📝 Пройти тест (10 вопросов)
+                        📝 Пройти тест
                     </button>
                 </div>
             </div>
@@ -157,6 +157,7 @@
         let quizWords = [];
         let currentQuizIndex = 0;
         let score = 0;
+        let canClick = true;
 
         async function loadData() {
             try {
@@ -277,13 +278,16 @@
         function startQuiz() {
             const wordsInTheme = allData[currentTheme].filter(word => word.pinyin && word.russian);
             
-            if (wordsInTheme.length < 10) {
-                alert("В этой теме меньше 10 слов. Пожалуйста, выберите другую тему.");
+            // Определяем количество вопросов: либо 10, либо все, что есть в теме
+            const numQuestions = Math.min(wordsInTheme.length, 10);
+
+            if (numQuestions === 0) {
+                alert("В этой теме нет слов для теста.");
                 return;
             }
 
-            // Выбираем 10 случайных слов
-            quizWords = [...wordsInTheme].sort(() => 0.5 - Math.random()).slice(0, 10);
+            // Выбираем случайные слова
+            quizWords = [...wordsInTheme].sort(() => 0.5 - Math.random()).slice(0, numQuestions);
             currentQuizIndex = 0;
             score = 0;
 
@@ -297,10 +301,11 @@
         function showQuizQuestion() {
             const word = quizWords[currentQuizIndex];
             document.getElementById('quiz_zh').innerText = word.chinese;
-            document.getElementById('quiz-progress-text').innerText = `Вопрос ${currentQuizIndex + 1} из 10`;
+            document.getElementById('quiz-progress-text').innerText = `Вопрос ${currentQuizIndex + 1} из ${quizWords.length}`;
             
             const optionsContainer = document.getElementById('quiz-options');
             optionsContainer.innerHTML = '';
+            canClick = true;
 
             // Генерируем варианты ответов
             let options = [word.russian];
@@ -320,28 +325,45 @@
                 const btn = document.createElement('button');
                 btn.className = "bg-white border-2 border-gray-200 p-4 rounded-xl font-bold hover:border-green-500 hover:bg-green-50 transition";
                 btn.innerText = opt;
-                btn.onclick = () => checkAnswer(opt, word.russian);
+                btn.onclick = () => checkAnswer(opt, word.russian, btn);
                 optionsContainer.appendChild(btn);
             });
         }
 
-        function checkAnswer(selected, correct) {
+        function checkAnswer(selected, correct, clickedBtn) {
+            if (!canClick) return;
+            canClick = false;
+
+            const buttons = document.getElementById('quiz-options').querySelectorAll('button');
+            
+            buttons.forEach(btn => {
+                if (btn.innerText === correct) {
+                    btn.classList.add('border-green-600', 'bg-green-50', 'text-green-700');
+                }
+            });
+
+            if (selected !== correct) {
+                clickedBtn.classList.add('border-red-600', 'bg-red-50', 'text-red-700');
+            }
+
             if (selected === correct) {
                 score++;
             }
 
-            currentQuizIndex++;
-            if (currentQuizIndex < 10) {
-                showQuizQuestion();
-            } else {
-                showQuizResult();
-            }
+            setTimeout(() => {
+                currentQuizIndex++;
+                if (currentQuizIndex < quizWords.length) {
+                    showQuizQuestion();
+                } else {
+                    showQuizResult();
+                }
+            }, 1000);
         }
 
         function showQuizResult() {
             document.getElementById('quiz-mode').classList.add('hidden');
             document.getElementById('quiz-result').classList.remove('hidden');
-            document.getElementById('quiz-score-text').innerText = `Правильно: ${score} / 10`;
+            document.getElementById('quiz-score-text').innerText = `Правильно: ${score} / ${quizWords.length}`;
         }
 
         loadData();
