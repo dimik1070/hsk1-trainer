@@ -76,9 +76,14 @@
             <h2 id="current-theme-title" class="text-2xl font-bold mb-4 text-red-800">Тема</h2>
 
             <div class="mb-6">
-                <button onclick="startTraining()" class="w-full bg-yellow-500 text-red-900 p-4 rounded-xl font-bold shadow-lg hover:bg-yellow-400 transition transform hover:scale-105">
-                    🚀 Начать тренировку (карточки)
-                </button>
+                <div class="flex flex-col gap-3">
+                    <button onclick="startTraining()" class="w-full bg-yellow-500 text-red-900 p-4 rounded-xl font-bold shadow-lg hover:bg-yellow-400 transition transform hover:scale-105">
+                        🚀 Начать тренировку (карточки)
+                    </button>
+                    <button onclick="startQuiz()" class="w-full bg-green-600 text-white p-4 rounded-xl font-bold shadow-lg hover:bg-green-700 transition transform hover:scale-105">
+                        📝 Пройти тест (30 вопросов)
+                    </button>
+                </div>
             </div>
 
             <div id="word-cards" class="space-y-4">
@@ -117,6 +122,28 @@
                 <button onclick="flipCard()" class="bg-red-700 text-white px-8 py-3 rounded-full font-bold shadow-lg hover:bg-red-800">Перевернуть</button>
                 <button onclick="nextWord()" class="bg-gray-200 px-6 py-3 rounded-full font-bold hover:bg-gray-300">Вперед</button>
             </div>
+        </div>
+
+        <!-- Quiz Mode -->
+        <div id="quiz-mode" class="hidden">
+            <button onclick="showThemes()" class="mb-4 text-red-700 font-bold">← Назад к темам</button>
+            <h2 id="quiz-theme-title" class="text-2xl font-bold mb-4 text-red-800">Тест</h2>
+            <div class="mb-4 text-right text-gray-500 font-bold" id="quiz-progress-text">1 / 30</div>
+
+            <div id="quiz-question-container" class="bg-white p-8 rounded-3xl shadow-xl border-4 border-green-600 text-center">
+                <p class="text-gray-500 mb-4">Переведите слово:</p>
+                <h3 id="quiz_zh" class="text-6xl font-bold mb-8 text-gray-800">...</h3>
+                <div id="quiz-options" class="grid grid-cols-1 gap-4">
+                    <!-- Варианты ответов -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Quiz Result -->
+        <div id="quiz-result" class="hidden text-center p-8 bg-white rounded-3xl shadow-xl border-4 border-yellow-500">
+            <h2 class="text-4xl font-bold mb-4 text-red-800">Результат теста</h2>
+            <p id="quiz-score-text" class="text-3xl mb-8">Правильно: 0 / 30</p>
+            <button onclick="showThemes()" class="w-full bg-red-700 text-white p-4 rounded-xl font-bold">Вернуться к темам</button>
         </div>
     </div>
 
