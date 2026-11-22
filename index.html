@@ -176,13 +176,13 @@ input{font:inherit}
 .brush path{
   fill:none;stroke:var(--red-3);stroke-width:5;stroke-linecap:round;
   stroke-dasharray:520;stroke-dashoffset:520;
-  animation:draw 1.5s .35s cubic-bezier(.3,.9,.2,1) forwards;
+  animation:draw .8s .15s cubic-bezier(.3,.9,.2,1) forwards;
 }
 @keyframes draw{to{stroke-dashoffset:0}}
 .head-zh{
   writing-mode:vertical-rl;font-family:var(--ff-cal);font-size:26px;letter-spacing:.28em;
   color:rgba(247,236,214,.72);text-shadow:0 2px 12px rgba(0,0,0,.5);
-  animation:fadeUp 1s .6s both;
+  animation:fadeUp .5s .2s both;
 }
 .stats{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 26px;padding:0;list-style:none}
 .stat{
@@ -216,14 +216,14 @@ input{font:inherit}
    ============================================================ */
 @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
-.reveal{opacity:0;transform:translateY(26px)}
+.reveal{opacity:0;transform:translateY(12px)}
 .reveal.in{
   opacity:1;transform:none;
-  transition:opacity .6s cubic-bezier(.2,.8,.2,1) calc(var(--i,0) * 55ms),
-             transform .7s cubic-bezier(.2,.8,.2,1) calc(var(--i,0) * 55ms);
+  transition:opacity .3s cubic-bezier(.2,.8,.2,1) calc(var(--i,0) * 16ms),
+             transform .34s cubic-bezier(.2,.8,.2,1) calc(var(--i,0) * 16ms);
 }
-.view{animation:viewIn .55s cubic-bezier(.2,.8,.2,1) both}
-@keyframes viewIn{from{opacity:0;transform:translateY(22px) scale(.985)}to{opacity:1;transform:none}}
+.view{animation:viewIn .36s cubic-bezier(.2,.8,.2,1) both}
+@keyframes viewIn{from{opacity:0;transform:translateY(16px) scale(.99)}to{opacity:1;transform:none}}
 
 /* ============================================================
    Список тем
@@ -407,7 +407,7 @@ input{font:inherit}
   position:relative;font-family:var(--ff-cal);font-size:clamp(64px,16vw,124px);line-height:1.15;
   color:var(--ink);text-shadow:0 12px 30px rgba(20,17,16,.22);
 }
-.face.front .hz .c{display:inline-block;animation:inkIn .8s cubic-bezier(.2,.85,.2,1) both;animation-delay:calc(var(--d,0) * 140ms)}
+.face.front .hz .c{display:inline-block;animation:inkIn .45s cubic-bezier(.2,.85,.2,1) both;animation-delay:calc(var(--d,0) * 55ms)}
 @keyframes inkIn{
   0%{opacity:0;filter:blur(14px);transform:translateY(20px) scale(.86)}
   60%{opacity:1;filter:blur(2px)}
@@ -439,7 +439,8 @@ input{font:inherit}
 }
 .say-big.speaking::after{animation-delay:.75s}
 @keyframes ring{0%{transform:scale(1);opacity:.85}100%{transform:scale(2.1);opacity:0}}
-.nav{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.nav{display:flex;align-items:center;justify-content:center;gap:12px}
+.nav .btn{min-width:160px}
 .dots{display:flex;gap:5px;flex-wrap:wrap;justify-content:center;margin:14px 0 0}
 .dots i{width:9px;height:9px;border-radius:50%;background:rgba(20,17,16,.16);transition:all .35s}
 .dots i.now{background:var(--red);transform:scale(1.5)}
@@ -460,7 +461,7 @@ input{font:inherit}
 }
 .quiz-card .q-hz{
   font-family:var(--ff-cal);font-size:clamp(58px,14vw,104px);line-height:1.1;text-align:center;
-  margin:6px 0 4px;animation:inkIn 1s cubic-bezier(.2,.85,.2,1) both;
+  margin:6px 0 4px;animation:inkIn .5s cubic-bezier(.2,.85,.2,1) both;
 }
 .quiz-card .q-py{text-align:center;color:var(--ink-3);margin:0 0 22px}
 .q-label{text-align:center;font-size:12.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--ink-3)}
@@ -507,7 +508,7 @@ input{font:inherit}
 .missed li{
   display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:center;
   padding:12px 16px;border-radius:var(--r-md);background:rgba(255,251,240,.09);
-  border:1px solid rgba(219,180,92,.28);animation:fadeUp .5s both;animation-delay:calc(var(--i,0) * 90ms);
+  border:1px solid rgba(219,180,92,.28);animation:fadeUp .32s both;animation-delay:calc(var(--i,0) * 28ms);
 }
 .missed .hz{font-family:var(--ff-hz);font-size:24px;color:var(--gold-soft)}
 .missed small{display:block;color:rgba(247,236,214,.6)}
@@ -530,18 +531,73 @@ input{font:inherit}
 }
 .foot .zh{font-family:var(--ff-cal);color:var(--red)}
 
+/* ============================================================
+   Компактная шапка на экранах слов / тренировки / теста
+   (статистика остаётся только на главной)
+   ============================================================ */
+body.sub .head{padding:11px 16px;margin-bottom:14px;gap:14px;border-radius:var(--r-lg)}
+body.sub .head .kicker,body.sub .brush,body.sub .head-zh{display:none}
+body.sub .head h1{font-size:clamp(19px,2.2vw,25px)}
+body.sub .head::after{animation-duration:16s}
+body.sub .seal{width:40px;height:40px;font-size:22px;border-radius:9px;animation:none}
+body.sub .stats{display:none}
+
 @media (max-width:640px){
-  .head{grid-template-columns:auto 1fr;padding:20px}
+  .wrap{padding:12px 12px 60px}
+  .head{grid-template-columns:auto 1fr;padding:13px 15px;margin-bottom:12px;gap:14px;border-radius:var(--r-lg)}
+  .head h1{font-size:23px}
+  .kicker{font-size:10px;letter-spacing:.2em;margin-bottom:3px}
+  .brush{width:110px;height:11px;margin-top:5px}
   .head-zh{display:none}
-  .word{grid-template-columns:auto 1fr auto;gap:10px;padding:12px 14px}
-  .word .hz{font-size:23px}
-  .word .say{width:36px;height:36px}
+  .seal{width:48px;height:48px;font-size:26px;border-radius:10px}
+  body.sub .head{padding:8px 11px;margin-bottom:9px;gap:10px}
+  body.sub .head h1{font-size:17px}
+  body.sub .seal{width:34px;height:34px;font-size:19px;border-radius:8px}
+  .stats{gap:7px;margin-bottom:12px}
+  .stat{flex:1 1 30%;padding:9px 11px;border-radius:var(--r-md)}
+  .stat b{font-size:21px}
+  .stat span{font-size:10px;letter-spacing:.08em}
+  .stat::after{font-size:34px;bottom:-10px}
+  .sec-title{margin-bottom:12px}
+  .sec-title h2{font-size:20px}
+  .search{margin-bottom:12px;padding:2px 2px 2px 12px}
+  .search input{padding:9px 0;font-size:15px}
+  .back{padding:6px 12px;font-size:12.5px;margin-bottom:8px}
+  .btn-row{gap:7px;margin-bottom:10px}
+  .btn-row .btn{flex:1 1 auto;padding:9px 12px;font-size:11.5px;gap:6px;justify-content:center;white-space:nowrap}
+  .btn-row .btn .zh{display:none}
+  .legend{gap:7px;font-size:10.5px;margin-bottom:8px}
+  .legend .hint{display:none}
+  .theme-head{padding:10px 12px;margin-bottom:8px;gap:10px}
+  .theme-head h2{font-size:18px}
+  .theme-head .sub{font-size:11.5px}
+  .theme-head .big{width:auto;height:auto;font-size:28px}
+  .words{gap:8px}
+  .word{grid-template-columns:auto 1fr auto;gap:10px;padding:11px 12px}
+  .word .hz{font-size:22px}
+  .word .say{width:34px;height:34px}
   .mark{width:30px;height:30px}
-  .face{padding:26px 18px}
-  .card3d{min-height:380px}
+  .train-bar{margin-bottom:9px;font-size:12.5px}
+  .deck{margin-bottom:12px}
+  .face{padding:18px 16px}
+  .card3d{min-height:min(46vh,330px)}
+  .card-actions{gap:7px;margin-bottom:9px}
+  .card-actions .btn,.nav .btn{padding:9px 10px;font-size:12.5px;gap:6px;justify-content:flex-start}
+  .card-actions .btn{flex:0 1 auto;white-space:nowrap;padding:9px 12px}
+  .card-actions .btn .zh{display:none}
+  .nav .btn .zh{font-size:14px;flex:none;white-space:nowrap}
+  .nav{gap:7px}
+  .nav .btn{flex:1 1 0;justify-content:center}
+  .dots{margin-top:9px}
   #all-words .ru{display:none}
-  .search{padding-left:14px}
-  .stat b{font-size:24px}
+  .beads{gap:4px;margin-bottom:10px}
+  .quiz-card{padding:16px 14px;border-radius:var(--r-lg)}
+  .quiz-card .q-hz{font-size:clamp(44px,17vw,66px)}
+  .quiz-card .q-py{margin:0 0 12px}
+  .q-label{font-size:11px;letter-spacing:.18em}
+  .opts{grid-template-columns:1fr 1fr;gap:8px}
+  .opt{padding:11px 12px;font-size:13px}
+  .foot{margin-top:26px;padding-top:14px;font-size:12px}
 }
 
 @media (prefers-reduced-motion:reduce){
@@ -645,15 +701,15 @@ input{font:inherit}
     </div>
 
     <div class="btn-row">
-      <button class="btn btn-red" id="go-train"><span class="zh">练习</span> Начать тренировку</button>
-      <button class="btn btn-jade" id="go-quiz"><span class="zh">考试</span> Пройти тест</button>
+      <button class="btn btn-red" id="go-train"><span class="zh">练习</span> Тренировка</button>
+      <button class="btn btn-jade" id="go-quiz"><span class="zh">考试</span> Тест</button>
       <button class="btn btn-gold" id="speak-all"><span class="zh">朗读</span> Озвучить все</button>
     </div>
 
     <div class="legend">
       <span><i class="l1"></i>1 тон · </span><span><i class="l2"></i>2 тон · </span>
       <span><i class="l3"></i>3 тон · </span><span><i class="l4"></i>4 тон · </span>
-      <span><i class="l0"></i>нейтральный · наведите ✓ чтобы отметить выученное</span>
+      <span><i class="l0"></i>нейтральный</span><span class="hint">· наведите ✓ чтобы отметить выученное</span>
     </div>
 
     <div class="search">
@@ -690,13 +746,11 @@ input{font:inherit}
 
     <div class="card-actions">
       <button class="btn btn-jade" id="fc-known"><span class="zh">记住</span> запомнил</button>
-      <button class="btn btn-ghost" id="fc-review"><span class="zh">复习</span> повторить</button>
       <button class="btn btn-ghost" id="fc-shuffle"><span class="zh">随机</span> перемешать</button>
     </div>
 
     <div class="nav">
       <button class="btn btn-ghost" id="fc-prev">← назад</button>
-      <button class="btn btn-red" id="fc-flip"><span class="zh">翻</span> перевернуть</button>
       <button class="btn btn-ghost" id="fc-next">вперёд →</button>
     </div>
     <div class="dots" id="fc-dots"></div>
@@ -986,6 +1040,7 @@ function speak(text, btn, rate){
 const VIEWS = ['home','words','train','quiz','result'];
 function show(name){
   if(name === 'home') renderHome();
+  document.body.classList.toggle('sub', name !== 'home');
   VIEWS.forEach(v => {
     const el = document.getElementById('view-' + v);
     if(v === name){ el.hidden = false; el.classList.remove('view'); void el.offsetWidth; el.classList.add('view'); }
@@ -1037,12 +1092,15 @@ function renderHome(){
     return;
   }
 
-  visible.forEach((e, idx) => {
+  function fullyKnown(e){ return e.words.length > 0 && knownCount(e.name) >= e.words.length; }
+  const ordered = visible.slice().sort((a, b) => (fullyKnown(a) ? 1 : 0) - (fullyKnown(b) ? 1 : 0));
+
+  ordered.forEach((e, idx) => {
     const kn = knownCount(e.name);
     const pct = e.words.length ? Math.round(kn / e.words.length * 100) : 0;
     const btn = document.createElement('button');
     btn.className = 'theme-card reveal' + (e.words.length ? (kn >= e.words.length && e.words.length ? ' done' : '') : ' empty');
-    btn.style.setProperty('--i', idx);
+    btn.style.setProperty('--i', Math.min(idx, 14));
     btn.disabled = !e.words.length;
     btn.innerHTML = `
       <span class="wm">${esc(themeGlyph(e.name, e.words))}</span>
@@ -1082,7 +1140,7 @@ function paintWordList(words){
   words.forEach((w, i) => {
     const li = document.createElement('li');
     li.className = 'word reveal';
-    li.style.setProperty('--i', i);
+    li.style.setProperty('--i', Math.min(i, 14));
     li.innerHTML = `
       <div>
         <span class="hz">${esc(w.chinese)}</span>
@@ -1138,7 +1196,7 @@ function startTrain(theme){
   paintCard();
 }
 
-function paintCard(){
+function paintCard(keepFlip){
   const w = train.words[train.i];
   const front = $('#face-front');
   front.dataset.glyph = Array.from(w.chinese)[0] || '';
@@ -1152,8 +1210,10 @@ function paintCard(){
   $('#train-known').textContent = knownCount(train.theme);
   $('#fc-known').innerHTML = isKnown(w) ? '<span class="zh">已记</span> выучено ✓' : '<span class="zh">记住</span> запомнил';
   const card = $('#card3d');
-  card.classList.remove('flip');
-  card.style.setProperty('--flip','0deg');
+  if(!keepFlip){
+    card.classList.remove('flip');
+    card.style.setProperty('--flip','0deg');
+  }
 
   const dots = $('#fc-dots');
   dots.innerHTML = '';
@@ -1176,7 +1236,6 @@ function trainStep(d){
   train.i = next;
   paintCard();
 }
-$('#fc-flip').addEventListener('click', flip);
 $('#deck').addEventListener('click', e => { if(!e.target.closest('.say-big')) flip(); });
 $('#fc-prev').addEventListener('click', () => trainStep(-1));
 $('#fc-next').addEventListener('click', () => trainStep(1));
@@ -1184,15 +1243,11 @@ $('#fc-say').addEventListener('click', e => { e.stopPropagation(); speak(train.w
 $('#fc-known').addEventListener('click', () => {
   const on = toggleKnown(train.words[train.i]);
   $('#fc-known').innerHTML = on ? '<span class="zh">已记</span> выучено ✓' : '<span class="zh">记住</span> запомнил';
-  paintCard();
+  paintCard(true);
+  $('#train-known').textContent = knownCount(train.theme);
   $('#stat-known').textContent = totalKnown();
-});
-$('#fc-review').addEventListener('click', () => {
-  const w = train.words[train.i];
-  delete known[keyOf(w)];
-  writeLS(LS_KNOWN, known);
-  paintCard();
-  $('#stat-known').textContent = totalKnown();
+  const dots = $('#fc-dots').children[train.i];
+  if(dots) dots.className = on ? 'done' : 'now';
 });
 $('#fc-shuffle').addEventListener('click', () => { train.words = shuffle(train.words); train.i = 0; paintCard(); });
 
